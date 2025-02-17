@@ -1,0 +1,72 @@
+{% extends "/core/base.html" %}
+
+{% block content %}
+<div class="container mt-2">
+    <h2 class="text-left mb-4">Editar Paciente</h2>
+    <form action="/pacientes/edit/{{ paciente.id }}" method="post" class="form" enctype="multipart/form-data">
+        <div class="card">
+            <div class="card-body">
+                <!-- Nome Completo e Data de Nascimento -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="nome_completo" class="form-label">Nome Completo</label>
+                        <input type="text" class="form-control" id="nome_completo" name="nome_completo" value="{{ paciente.nome_completo }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="data_nascimento" class="form-label">Data de Nascimento</label>
+                        <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" value="{{ paciente.data_nascimento.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                </div>
+
+                <!-- BI e Sexo -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="bi" class="form-label">Bilhete de Identidade (BI)</label>
+                        <input type="text" class="form-control" id="bi" name="bi" value="{{ paciente.bi }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="sexo" class="form-label">Sexo</label>
+                        <select class="form-select" id="sexo" name="sexo" required>
+                            <option value="Masculino" {% if paciente.sexo == 'Masculino' %}selected{% endif %}>Masculino</option>
+                            <option value="Feminino" {% if paciente.sexo == 'Feminino' %}selected{% endif %}>Feminino</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Correio e Telefone -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="correio" class="form-label">Correio Eletrônico</label>
+                        <input type="email" class="form-control" id="correio" name="correio" value="{{ paciente.correio }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="telefone" class="form-label">Telefone</label>
+                        <input type="text" class="form-control" id="telefone" name="telefone" value="{{ paciente.telefone }}" required>
+                    </div>
+                </div>
+
+                <!-- Endereço -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="endereco" class="form-label">Endereço</label>
+                        <textarea class="form-control" id="endereco" name="endereco" rows="2" required>{{ paciente.endereco }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    <a href="/pacientes/all" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form {
+        max-width: 700px;
+        margin: auto;
+    }
+</style>
+{% endblock %}

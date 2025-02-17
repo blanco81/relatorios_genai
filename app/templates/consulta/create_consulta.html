@@ -1,0 +1,64 @@
+{% extends "/core/base.html" %}
+
+{% block content %}
+<div class="container mt-2">
+    <h2 class="text-left mb-4">Criar Consulta</h2>
+    <form action="/consultas/create" method="post" class="form">
+        <div class="card">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="paciente_id" class="form-label">Paciente</label>
+                        <select class="form-select" id="paciente_id" name="paciente_id" required>
+                            <option value="" disabled selected>Selecione o Paciente</option>
+                            {% for paciente in pacientes %}
+                                <option value="{{ paciente.id }}">{{ paciente.nome_completo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>                    
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="diagnostico" class="form-label">Diagnóstico</label>
+                        <textarea class="form-control" id="diagnostico" name="diagnostico" rows="3" required></textarea>
+                    </div>                    
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="prescricoes" class="form-label">Prescrições</label>
+                        <textarea class="form-control" id="prescricoes" name="prescricoes" rows="3" required></textarea>
+                    </div>                    
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-primary">Criar Consulta</button>
+                    <a href="/consultas/all" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form {
+        max-width: 700px;
+        margin: auto;
+    }
+</style>
+
+<!-- Incluindo o CSS e o JS do Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Inicializando o Select2 no campo de paciente
+        $('#paciente_id').select2({
+            placeholder: "Selecione o Paciente",
+            allowClear: true
+        });
+    });
+</script>
+
+{% endblock %}

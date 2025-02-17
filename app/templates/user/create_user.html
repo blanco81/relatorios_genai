@@ -1,0 +1,86 @@
+{% extends "/core/base.html" %}
+
+{% block content %}
+<div class="container mt-2">
+    <h2 class="text-center mb-4">Criar Usuário</h2>
+    <form action="/users/create" method="post" class="form" enctype="multipart/form-data" onsubmit="return validatePasswords();">
+        <div class="card">
+            <div class="card-body">
+                <!-- Nome Completo -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="nome_completo" class="form-label">Nome Completo</label>
+                        <input type="text" class="form-control" id="nome_completo" name="nome_completo" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="role" class="form-label">Função</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="" disabled selected>Escolha uma função</option>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Funcionario">Funcionario</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Correio e Telefone -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="correio" class="form-label">Correio</label>
+                        <input type="email" class="form-control" id="correio" name="correio" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="telefone" class="form-label">Telefone</label>
+                        <input type="text" class="form-control" id="telefone" name="telefone">
+                    </div>
+                </div>
+
+                <!-- Especialidade -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="especialidade" class="form-label">Especialidade</label>
+                        <input type="text" class="form-control" id="especialidade" name="especialidade">
+                    </div>
+                </div>
+
+                <!-- Senha e Confirmar Senha -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="senha" class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="senha" name="senha" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="confirm_senha" class="form-label">Repita a Senha</label>
+                        <input type="password" class="form-control" id="confirm_senha" name="confirm_senha" required>
+                    </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-primary">Criar Usuário</button>
+                    <a href="/users/all" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function validatePasswords() {
+        const password = document.getElementById('senha').value;
+        const confirmPassword = document.getElementById('confirm_senha').value;
+
+        if (password !== confirmPassword) {
+            alert('As senhas não coincidem. Por favor, tente novamente.');
+            return false; // Impede o envio do formulário
+        }
+        return true; // Permite o envio do formulário
+    }
+</script>
+
+<style>
+    .form {
+        max-width: 800px;
+        margin: auto;
+    }
+</style>
+{% endblock %}

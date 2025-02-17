@@ -1,0 +1,55 @@
+{% extends "/core/base.html" %}
+
+{% block content %}
+<div class="container mt-2">
+    <h2 class="text-left mb-4">Editar Consulta</h2>
+    <form action="/consultas/edit/{{ consulta.id }}" method="post" class="form">
+        <div class="card">
+            <div class="card-body">
+                <!-- Campo Paciente (Desabilitado) -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="paciente_id" class="form-label">Paciente</label>
+                        <!-- Campo select desabilitado -->
+                        <select class="form-select" id="paciente_id" name="paciente_id" disabled required>
+                            <option value="{{ consulta.paciente_id }}" selected>{{ consulta.paciente.nome_completo }}</option>
+                        </select>
+                        <!-- Campo oculto para enviar o paciente_id -->
+                        <input type="hidden" name="paciente_id" value="{{ consulta.paciente_id }}">
+                    </div>
+                </div>
+
+                <!-- Diagnóstico -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="diagnostico" class="form-label">Diagnóstico</label>
+                        <textarea class="form-control" id="diagnostico" name="diagnostico" rows="3" required>{{ consulta.diagnostico }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Prescrições -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="prescricoes" class="form-label">Prescrições</label>
+                        <textarea class="form-control" id="prescricoes" name="prescricoes" rows="3" required>{{ consulta.prescricoes }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    <a href="/consultas/all" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form {
+        max-width: 700px;
+        margin: auto;
+    }
+</style>
+
+{% endblock %}

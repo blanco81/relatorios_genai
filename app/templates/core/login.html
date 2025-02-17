@@ -1,0 +1,112 @@
+<!doctype html>
+<!-- 
+* Bootstrap Simple Admin Template
+* Version: 2.1
+* Author: Alexis Luna
+* Website: https://github.com/alexis-luna/bootstrap-simple-admin-template
+-->
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Gestão de Relatórios Médicos</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/fontawesome/css/fontawesome.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/fontawesome/css/solid.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/fontawesome/css/brands.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/auth.css') }}">
+
+    <style>
+        /* Estilos para a imagem de fundo */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-image: url('/static/img/background.png'); /* Rota da imagem de fundo */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: rgba(255, 255, 255, 0.5); /* Fundo semi-transparente para melhorar a legibilidade */
+        }
+
+        .auth-content {
+            max-width: 400px;
+            width: 100%;
+            background-color: white; /* Fundo branco para o formulário */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra para destacar o formulário */
+        }
+    </style>
+
+    <script src="{{ url_for('static', path='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', path='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/initiate-toast.js') }}"></script>
+    <script src="{{ url_for('static', path='js/script.js') }}"></script>
+</head>
+
+<body>
+    <div class="main-container">
+        <!-- Conteúdo principal -->
+        <div class="auth-content">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">                        
+                        <i class="fa fa-stethoscope"></i> Gestão de Relatórios Médicos <i class="fa fa-user-md"></i>
+                    </div>
+                    <div class="mb-4">                        
+                        Acceso ao Sistema</i>
+                    </div>
+                    <form action="/auth/login" method="post">
+                        <div class="mb-3 text-start">
+                            <input type="email" name="correio" class="form-control" placeholder="Inserir Correio" required>
+                        </div>
+                        <div class="mb-3 text-start">
+                            <input type="password" name="senha" class="form-control" placeholder="Inserir Senha" required>
+                        </div>
+                        <button class="btn btn-primary shadow-2 mb-4">Acceso</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contêiner de notificações -->
+    <div id="notifications-container" class="toast-container position-fixed bottom-0 end-0 p-3">
+        {% for notification in request.session.get('notifications', []) %}
+        <div class="toast text-white bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Notificação</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                {{ notification }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                const toastInstance = new bootstrap.Toast(toast, { autohide: true });
+                toastInstance.show();
+            });
+
+            // Após exibir notificações, limpá-las da sessão
+            fetch("{{ url_for('clear_notifications') }}", { method: "POST" });
+        });
+    </script>
+</body>
+
+</html>
