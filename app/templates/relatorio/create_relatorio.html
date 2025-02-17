@@ -1,0 +1,152 @@
+{% extends "/core/base.html" %}
+
+{% block content %}
+<div class="container mt-2">
+    <h2 class="text-left mb-4">Gerar Relatório</h2>
+    
+    <!-- Formulário para gerar relatório a partir de uma consulta existente -->
+    <form id="formRelatorio" class="form">
+        <div class="card">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="consulta_id" class="form-label">Consulta</label>
+                        <select class="form-select" id="consulta_id" name="consulta_id" required>
+                            <option value="" disabled selected>Selecione a Consulta</option>
+                            {% for consulta in consultas %}
+                                <option value="{{ consulta.id }}">{{ consulta.tipo }} - {{ consulta.paciente.nome_completo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>                    
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" id="btnGerar" class="btn btn-primary">
+                        Gerar Relatório
+                    </button>
+                    <a href="/relatorios/all" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Spinner de carregamento -->
+    <div id="loadingSpinner" class="text-center mt-3" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Gerando relatório...</span>
+        </div>
+        <p>Aguarde, estamos gerando o relatório...</p>
+    </div>
+
+    <!-- Exibição do relatório gerado -->
+    <div id="relatorioGerado" class="mt-4">
+        <!-- O conteúdo do relatório será exibido aqui -->
+    </div>
+</div>
+
+<style>
+    .form {
+        max-width: 700px;
+        margin: auto;
+    }
+
+    /* Estilos para o relatório gerado */
+    #relatorioGerado {
+        border: 1px solid #ddd;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+    }
+
+    #relatorioGerado h3 {
+        margin-bottom: 20px;
+        color: #007bff;
+    }
+
+    #relatorioGerado p {
+        margin-bottom: 15px;
+        line-height: 1.6;
+    }
+
+    #relatorioGerado pre {
+        background-color: #eee;
+        padding: 15px;
+        border-radius: 5px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-size: 14px;
+    }
+
+    /* Centraliza o spinner */
+    #loadingSpinner {
+        text-align: center;
+        margin-top: 20px;
+    }
+</style>
+
+<!-- Incluindo o CSS e o JS do Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Inicializando o Select2 no campo de consulta
+    $('#consulta_id').select2({
+        placeholder: "Selecione a Consulta",
+        allowClear: true
+    });
+
+    // Submeter o formulário para gerar o relatório
+    $('#formRelatorio').on('submit', async function(e) {
+        e.preventDefault();
+
+        const consultaId = $('#consulta_id').val();
+
+        if (!consultaId) {
+            alert("Por favor, selecione uma consulta.");
+            return;
+        }
+
+        // Exibir o spinner e desativar o botão
+        $('#loadingSpinner').show();
+        $('#btnGerar').prop('disabled', true).text("Gerando...");
+
+        try {
+            const response = await fetch(`/relatorios/gerar-relatorio/${consultaId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Relatório gerado com sucesso!');
+
+                // Exibe o relatório gerado na página
+                document.getElementById("relatorioGerado").innerHTML = `
+                    <h3>Relatório Gerado</h3>
+                    <p><strong>Paciente:</strong> ${result.consulta.paciente.nome_completo}</p>
+                    <p><strong>Diagnóstico:</strong> ${result.consulta.diagnostico}</p>
+                    <p><strong>Prescrições:</strong> ${result.consulta.prescricoes}</p>
+                    <p><strong>Médico:</strong> ${result.consulta.usuario.nome_completo}</p>
+                    <pre>${result.conteudo}</pre>
+                `;
+            } else {
+                alert('Erro ao gerar o relatório.');
+            }
+        } catch (error) {
+            console.error('Erro ao gerar o relatório:', error);
+            alert('Ocorreu um erro ao tentar gerar o relatório.');
+        } finally {
+            // Esconder o spinner e reativar o botão
+            $('#loadingSpinner').hide();
+            $('#btnGerar').prop('disabled', false).text("Gerar Relatório");
+        }
+    });
+});
+</script>
+
+{% endblock %}

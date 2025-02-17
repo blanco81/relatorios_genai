@@ -1,0 +1,162 @@
+{% extends "core/base.html" %}
+
+{% block title %}Lista de Relatórios{% endblock %}
+
+{% block content %}
+
+<h2>Lista de Relatórios</h2>
+
+<div class="row mb-4 align-items-end">
+    <div class="col-md-8">
+        <div class="btn-group ml-2" role="group">
+            <a href="/relatorios/create" class="btn btn-info">Novo Relatório <i class="fas fa-plus"></i></a>
+        </div>
+    </div>
+</div>
+
+<!-- Tabela de relatórios com DataTable -->
+<table id="relatoriosTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>Consulta</th>
+            <th>Paciente</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for relatorio in relatorios %}
+        <tr id="relatorio-{{ relatorio.id }}">
+            <td>{{ relatorio.consulta.tipo }}</td>
+            <td>{{ relatorio.consulta.paciente.nome_completo }}</td>
+            <td>
+                <button type="button" class="btn btn-info btn-sm" onclick="showRelatorioDetails('{{ relatorio.id }}')">Detalhes</button>
+                <button type="button" class="btn btn-warning btn-sm" onclick="deleteRelatorio('{{ relatorio.id }}')">Eliminar</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal para mostrar detalhes do relatório -->
+<div class="modal" id="relatorioDetailsModal" tabindex="-1" aria-labelledby="relatorioDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="relatorioDetailsModalLabel">Detalhes do Relatório</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent">
+                    <!-- Informações do relatório serão carregadas aqui -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#relatoriosTable').DataTable({
+            "language": {
+                "search": "Pesquisar:",
+                "lengthMenu": "Mostrar _MENU_ relatórios por página",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ relatórios",
+                "infoEmpty": "Mostrando 0 a 0 de 0 relatórios",
+                "zeroRecords": "Nenhum relatório encontrado",
+                "paginate": {
+                    "previous": "Anterior",
+                    "next": "Próximo"
+                }
+            }
+        });
+    });
+
+    // Função para mostrar detalhes do relatório no modal
+    async function showRelatorioDetails(relatorioId) {
+        try {
+            const response = await fetch(`/relatorios/details/${relatorioId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                const relatorioDetails = result;
+
+                const modalContent = `
+                    <div class="container">
+                        <h5 class="mb-4"><strong>Detalhes do Relatório</strong></h5>
+                        <table class="table table-bordered table-striped">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Conteúdo do Relatório:</strong></td>
+                                    <td style="white-space: pre-wrap; word-wrap: break-word;">${relatorioDetails.conteudo}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Consulta:</strong></td>
+                                    <td>${relatorioDetails.consulta.tipo}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Paciente:</strong></td>
+                                    <td>${relatorioDetails.consulta.paciente.nome_completo}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Usuário Responsável:</strong></td>
+                                    <td>${relatorioDetails.consulta.usuario.nome_completo}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Data de Criação:</strong></td>
+                                    <td>${new Date(relatorioDetails.data_criacao).toLocaleString()}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+
+                document.getElementById("modalContent").innerHTML = modalContent;
+                const modal = new bootstrap.Modal(document.getElementById('relatorioDetailsModal'));
+                modal.show();
+            } else {
+                alert('Erro ao carregar detalhes do relatório.');
+            }
+        } catch (error) {
+            console.error("Erro ao carregar detalhes do relatório:", error);
+        }
+    }
+
+    // Função para eliminar um relatório
+    async function deleteRelatorio(relatorioId) {
+        if (confirm("Tem certeza de que deseja excluir este relatório?")) {
+            try {
+                const response = await fetch(`/relatorios/delete/${relatorioId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const result = await response.json();
+
+                if (result.status === "ok") {
+                    document.querySelector(`#relatorio-${relatorioId}`).remove();
+                    alert("Relatório excluído com sucesso!");
+                } else if (result.status === "error") {
+                    alert("Erro ao excluir o relatório.");
+                } else if (result.status === "admin") {
+                    alert("Operação reservada para usuários autorizados.");
+                }
+            } catch (error) {
+                console.error("Erro na requisição fetch:", error);
+            }
+        }
+    }
+</script>
+
+{% endblock %}

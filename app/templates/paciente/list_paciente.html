@@ -1,0 +1,186 @@
+{% extends "core/base.html" %}
+
+{% block title %}Lista de Pacientes{% endblock %}
+
+{% block content %}
+
+<h2>Lista de Pacientes</h2>
+
+<div class="row mb-4 align-items-end">
+    <div class="col-md-8">
+        <div class="btn-group ml-2" role="group">
+            <a href="/pacientes/create" class="btn btn-info">Novo Paciente <i class="fas fa-plus"></i></a>
+        </div>
+    </div>
+</div>
+
+<!-- Tabela de pacientes com DataTable -->
+<table id="pacientesTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>Nome Completo</th>
+            <th>Data de Nascimento</th>
+            <th>BI</th>
+            <th>Telefone</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for paciente in pacientes %}
+        <tr id="paciente-{{ paciente.id }}">
+            <td>{{ paciente.nome_completo }}</td>
+            <td>{{ paciente.data_nascimento.strftime('%d/%m/%Y') }}</td>
+            <td>{{ paciente.bi }}</td>
+            <td>{{ paciente.telefone }}</td>
+            <td>
+                <button type="button" class="btn btn-info btn-sm" onclick="showPacienteDetails('{{ paciente.id }}')">Detalhes</button>
+                <a href="/pacientes/edit/{{ paciente.id }}" class="btn btn-secondary btn-sm">Editar</a>
+                <button type="button" class="btn btn-warning btn-sm" onclick="deletePaciente('{{ paciente.id }}')">Eliminar</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal para mostrar detalhes do paciente -->
+<div class="modal" id="pacienteDetailsModal" tabindex="-1" aria-labelledby="pacienteDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pacienteDetailsModalLabel">Detalhes do Paciente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent">
+                    <!-- Informação do paciente será carregada aqui -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#pacientesTable').DataTable({
+            "language": {
+                "search": "Pesquisar:",
+                "lengthMenu": "Mostrar _MENU_ pacientes por página",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ pacientes",
+                "infoEmpty": "Mostrando 0 a 0 de 0 pacientes",
+                "zeroRecords": "Nenhum paciente encontrado",
+                "paginate": {
+                    "previous": "Anterior",
+                    "next": "Próximo"
+                }
+            }
+        });
+    });
+
+    // Função para mostrar detalhes do paciente no modal
+    async function showPacienteDetails(pacienteId) {
+        try {
+            const response = await fetch(`/pacientes/details/${pacienteId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                const pacienteDetails = result;
+
+                // Criar a lista de consultas associadas
+                const consultasList = pacienteDetails.consultas
+                    .map(consulta => `<li>${new Date(consulta.data_consulta).toLocaleString()} - ${consulta.diagnostico}</li>`)
+                    .join("");
+
+                const modalContent = `
+                    <table class="table">
+                        <tr>
+                            <td><strong>Nome Completo:</strong></td>
+                            <td>${pacienteDetails.nome_completo}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Data de Nascimento:</strong></td>
+                            <td>${new Date(pacienteDetails.data_nascimento).toLocaleDateString()}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>BI:</strong></td>
+                            <td>${pacienteDetails.bi}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sexo:</strong></td>
+                            <td>${pacienteDetails.sexo}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Correio:</strong></td>
+                            <td>${pacienteDetails.correio || "N/A"}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Telefone:</strong></td>
+                            <td>${pacienteDetails.telefone}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Endereço:</strong></td>
+                            <td>${pacienteDetails.endereco}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Data de Criação:</strong></td>
+                            <td>${new Date(pacienteDetails.data_criacao).toLocaleString()}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Consultas Associadas:</strong></td>
+                            <td>
+                                <div style="max-height: 150px; overflow-y: auto;">
+                                    <ul>${consultasList}</ul>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                `;
+
+                document.getElementById("modalContent").innerHTML = modalContent;
+                const modal = new bootstrap.Modal(document.getElementById('pacienteDetailsModal'));
+                modal.show();
+            } else {
+                alert('Erro ao carregar detalhes do paciente.');
+            }
+        } catch (error) {
+            console.error("Erro ao carregar detalhes do paciente:", error);
+        }
+    }
+
+    // Função para eliminar um paciente
+    async function deletePaciente(pacienteId) {
+        if (confirm("Tem certeza de que deseja excluir este paciente?")) {
+            try {
+                const response = await fetch(`/pacientes/delete/${pacienteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const result = await response.json();
+
+                if (result.status === "ok") {
+                    document.querySelector(`#paciente-${pacienteId}`).remove();
+                    alert("Paciente excluído com sucesso!");
+                } else if (result.status === "error") {
+                    alert("Erro ao excluir o paciente.");
+                } else if (result.status === "admin") {
+                    alert("Operação reservada para usuários autorizados.");
+                }
+            } catch (error) {
+                console.error("Erro na requisição fetch:", error);
+            }
+        }
+    }
+</script>
+
+{% endblock %}

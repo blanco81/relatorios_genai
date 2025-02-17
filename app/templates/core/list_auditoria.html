@@ -1,0 +1,57 @@
+{% extends "core/base.html" %}
+
+{% block title %}Lista de Logs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Lista de Registros</h2>
+
+    <!-- Tabela de logs -->
+    <table id="logsTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+        <thead>
+            <tr>    
+                <th>Responsável</th>
+                <th>Ação</th>
+                <th>Data de Criação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for aud in auditorias %}
+            <tr>                
+                <td>{{ aud.usuario.nome_completo }}</td>
+                <td>{{ aud.acao }}</td>
+                <td>{{ aud.data_criacao.strftime("%d-%m-%Y %H:%M") if aud.data_criacao else "" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#logsTable').DataTable({
+            "paging": true,
+            "ordering": true,
+            "info": true,
+            "language": {
+                "search": "Pesquisar:",
+                "lengthMenu": "Mostrar _MENU_ logs por página",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ logs",
+                "infoEmpty": "Mostrando 0 a 0 de 0 logs",
+                "zeroRecords": "Nenhum log encontrado",
+                "paginate": {
+                    "previous": "Anterior",
+                    "next": "Próximo"
+                }
+            },
+            // Configurar RowGroup para agrupar por área (opcional)
+            "rowGroup": {
+                "dataSrc": "Responsável"
+            },
+            "columnDefs": [
+                { "visible": false, "targets": 0 } // Ocultar coluna "Área" se necessário
+            ]
+        });
+    });
+</script>
+{% endblock %}

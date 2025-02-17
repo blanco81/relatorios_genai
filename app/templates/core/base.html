@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Gestão de Relatórios Médicos{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/fontawesome/css/fontawesome.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/fontawesome/css/solid.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/fontawesome/css/brands.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/datatables/datatables.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/master.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='vendor/flagiconcss/css/flag-icon.min.css') }}">
+
+    <script src="{{ url_for('static', path='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', path='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', path='vendor/datatables/datatables.min.js') }}"></script>
+    {% block head %}{% endblock %}
+
+    <style>
+        /* Estilo para o corpo da página com imagem de fundo */
+        body {
+            background-image: url('/static/img/background.png'); /* Substitua pelo caminho da sua imagem */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Ajuste para o conteúdo principal */
+        .main-content {
+            padding: 80px;
+            background-color: rgba(255, 255, 255, 0.8); /* Fundo semi-transparente para melhor legibilidade */
+            border-radius: 10px;
+            margin: 20px auto; /* Centralizar o conteúdo */
+            max-width: 1200px; /* Largura máxima do conteúdo */
+        }
+
+        /* Estilo para o Navbar */
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.9); /* Fundo semi-transparente */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilo para as notificações */
+        #notifications-container {
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar navigation component -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/core/dashboard">
+                <i class="fa fa-user-md"></i></i>Relatórios Médicos
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/pacientes/all">
+                        <i class="fas fa-hospital-user"></i> Pacientes</a>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="/consultas/all">
+                        <i class="fas fa-hospital"></i> Consultas</a>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="/relatorios/all">
+                        <i class="fas fa-file-alt"></i> Relatorios</a>
+                    </li>
+                    
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.role == "Administrador" %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-key"></i> Acceso Limitado
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                <li><a class="dropdown-item" href="/users/all">Lista de Usuários</a></li>
+                                <li><a class="dropdown-item" href="/core/auditoria">Registros das Auditorias</a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-lock"></i> {{ current_user.correio }} / {{ current_user.role }} 
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="/auth/logout">Sair</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- End of navbar component -->
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Contêiner de notificações -->
+    <div id="notifications-container" class="toast-container position-fixed bottom-0 end-0 p-3">
+        {% for notification in request.session.get('notifications', []) %}
+        <div class="toast text-white bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Notificação</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                {{ notification }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script src="{{ url_for('static', path='vendor/chartsjs/Chart.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/dashboard-charts.js') }}"></script>
+    <script src="{{ url_for('static', path='js/initiate-toast.js') }}"></script>    
+    <script src="{{ url_for('static', path='js/script.js') }}"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                const toastInstance = new bootstrap.Toast(toast, { autohide: true });
+                toastInstance.show();
+            });
+
+            // Após exibir notificações, limpá-las da sessão
+            fetch("{{ url_for('clear_notifications') }}", { method: "POST" });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,160 @@
+{% extends "core/base.html" %}
+
+{% block title %}Lista de Consultas{% endblock %}
+
+{% block content %}
+
+<h2>Lista de Consultas</h2>
+
+<div class="row mb-4 align-items-end">
+    <div class="col-md-8">
+        <div class="btn-group ml-2" role="group">
+            <a href="/consultas/create" class="btn btn-info">Nova Consulta <i class="fas fa-plus"></i></a>
+        </div>
+    </div>
+</div>
+
+<!-- Tabela de consultas com DataTable -->
+<table id="consultasTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>Tipo de Consulta</th>
+            <th>Paciente</th>
+            <th>Médico</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for consulta in consultas %}
+        <tr id="consulta-{{ consulta.id }}">
+            <td>{{ consulta.tipo }}</td>
+            <td>{{ consulta.paciente.nome_completo }}</td>
+            <td>{{ consulta.usuario.nome_completo }}</td>
+            <td>
+                <button type="button" class="btn btn-info btn-sm" onclick="showConsultaDetails('{{ consulta.id }}')">Detalhes</button>
+                <a href="/consultas/edit/{{ consulta.id }}" class="btn btn-secondary btn-sm">Editar</a>
+                <button type="button" class="btn btn-warning btn-sm" onclick="deleteConsulta('{{ consulta.id }}')">Eliminar</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal para mostrar detalhes da consulta -->
+<div class="modal" id="consultaDetailsModal" tabindex="-1" aria-labelledby="consultaDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="consultaDetailsModalLabel">Detalhes da Consulta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent">
+                    <!-- Informação da consulta será carregada aqui -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#consultasTable').DataTable({
+            "language": {
+                "search": "Pesquisar:",
+                "lengthMenu": "Mostrar _MENU_ consultas por página",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ consultas",
+                "infoEmpty": "Mostrando 0 a 0 de 0 consultas",
+                "zeroRecords": "Nenhuma consulta encontrada",
+                "paginate": {
+                    "previous": "Anterior",
+                    "next": "Próximo"
+                }
+            }
+        });
+    });
+
+    // Função para mostrar detalhes da consulta no modal
+    async function showConsultaDetails(consultaId) {
+        try {
+            const response = await fetch(`/consultas/details/${consultaId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                const consultaDetails = result;
+
+                const modalContent = `
+                    <table class="table">
+                        <tr>
+                            <td><strong>Tipo de Consulta:</strong></td>
+                            <td>${consultaDetails.tipo}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Diagnóstico:</strong></td>
+                            <td>${consultaDetails.diagnostico}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Prescrições:</strong></td>
+                            <td>${consultaDetails.prescricoes}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Paciente:</strong></td>
+                            <td>${consultaDetails.paciente.nome_completo}</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>Data de Criação:</strong></td>
+                            <td>${new Date(consultaDetails.data_criacao).toLocaleString()}</td>
+                        </tr>
+                    </table>
+                `;
+
+                document.getElementById("modalContent").innerHTML = modalContent;
+                const modal = new bootstrap.Modal(document.getElementById('consultaDetailsModal'));
+                modal.show();
+            } else {
+                alert('Erro ao carregar detalhes da consulta.');
+            }
+        } catch (error) {
+            console.error("Erro ao carregar detalhes da consulta:", error);
+        }
+    }
+
+    // Função para eliminar uma consulta
+    async function deleteConsulta(consultaId) {
+        if (confirm("Tem certeza de que deseja excluir esta consulta?")) {
+            try {
+                const response = await fetch(`/consultas/delete/${consultaId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const result = await response.json();
+
+                if (result.status === "ok") {
+                    document.querySelector(`#consulta-${consultaId}`).remove();
+                    alert("Consulta excluída com sucesso!");
+                } else if (result.status === "error") {
+                    alert("Erro ao excluir a consulta.");
+                } else if (result.status === "admin") {
+                    alert("Operação reservada para usuários autorizados.");
+                }
+            } catch (error) {
+                console.error("Erro na requisição fetch:", error);
+            }
+        }
+    }
+</script>
+
+{% endblock %}
